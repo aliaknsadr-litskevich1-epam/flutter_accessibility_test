@@ -2568,6 +2568,25 @@ class SemanticsNode extends AbstractNode with DiagnosticableTreeMixin {
     for (int position = 0; position < childrenInDefaultOrder!.length; position += 1) {
       final SemanticsNode child = childrenInDefaultOrder[position];
       final SemanticsSortKey? sortKey = child.sortKey;
+
+      if (sortKey is FirstInOrderSortKey) {
+        everythingSorted.insert(
+          0,
+          _TraversalSortNode(
+            node: child,
+            sortKey: sortKey,
+            position: position,
+          ),
+        );
+
+        if (sortNodes.isNotEmpty) {
+          everythingSorted.addAll(sortNodes);
+          sortNodes.clear();
+        }
+
+        continue;
+      }
+
       lastSortKey = position > 0
           ? childrenInDefaultOrder[position - 1].sortKey
           : null;
@@ -4733,4 +4752,14 @@ class OrdinalSortKey extends SemanticsSortKey {
     super.debugFillProperties(properties);
     properties.add(DoubleProperty('order', order, defaultValue: null));
   }
+}
+
+class FirstInOrderSortKey extends SemanticsSortKey {
+  const FirstInOrderSortKey({super.name});
+
+  @override
+  int compareTo(covariant SemanticsSortKey other) => -1;
+
+  @override
+  int doCompare(covariant FirstInOrderSortKey other) => -1;
 }
